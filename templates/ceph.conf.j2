@@ -1,0 +1,3 @@
+[global]
+fsid = {{ ceph_fsid }}
+mon host = {% for ip_port in ceph_mon_ips %}{% set ip = ip_port.replace(":6789","") %}[v2:{{ ip }}:3300,v1:{{ ip }}:6789]{% if not loop.last %},{% endif %}{% endfor %}

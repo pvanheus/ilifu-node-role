@@ -1,0 +1,46 @@
+---
+- name: Install required packages
+  apt:
+    name: 
+      - build-essential
+      - cgroup-lite
+      - cgroup-tools
+      - cgroupfs-mount
+      - git
+      - hwloc
+      - libcgroup1
+      - libgpgme11-dev
+      - libhdf5-103
+      - libhdf5-dev
+      - libhwloc-dev
+      - libjson-c-dev
+      - libmariadb-dev
+      - libmunge-dev
+      - libnss-ldapd
+      - libnuma1
+      - libnuma-dev
+      - libpam0g-dev
+      - libseccomp-dev
+      - libssl-dev
+      - munge
+      - openjdk-11-jre-headless
+      - pkg-config
+      - python3-dev 
+      - unzip
+      - uuid-dev
+      - virtualenv
+      - xauth
+
+- name: Download and unpack slurm tarball
+  ansible.builtin.unarchive:
+    src: "https://download.schedmd.com/slurm/slurm-{{ slurm_version }}.tar.bz2"
+    dest: "/home/{{ ansible_user }}"
+    remote_src: true
+    creates: "/home/{{ ansible_user }}/slurm-{{ slurm_version }}"
+  become_user: "{{ ansible_user }}"
+
+# - name: Compile slurm
+#   ansible.builtin.command:
+#     cmd: "./configure --prefix=/opt/slurms/{{ slurm_version }} --enable-pam --with-json --with-hdf5 --with-hwloc --with-nvml={{ cuda.path }}"
+#     chdir: "/home/{{ ansible_user }}/slurm-{{ slurm_version }}"
+

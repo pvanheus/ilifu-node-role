@@ -1,0 +1,13 @@
+---
+- ansible.builtin.import_tasks:
+    file: sssd.yml
+  tags:
+    - sssd
+- ansible.builtin.import_tasks:
+    file: ceph.yml
+  tags:
+    - ceph
+- ansible.builtin.import_tasks:
+    file: slurm.yml
+  tags:
+    - slurm

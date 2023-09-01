@@ -1,0 +1,57 @@
+---
+- name: Add ceph repo key
+  ansible.builtin.get_url:
+    url: https://download.ceph.com/keys/release.asc
+    dest: /etc/apt/keyrings/ceph.asc
+    owner: root
+    mode: 0644
+
+- name: Remove old ceph repos
+  apt_repository:
+    repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/ceph.asc] https://download.ceph.com/debian-{{ item }}/ focal main"
+    state: absent
+    filename: "ceph-{{ item }}"
+  loop:
+    - octopus
+
+- name: Add current ceph repo
+  apt_repository:
+    repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/ceph.asc] https://download.ceph.com/debian-{{ ceph_release }}/ focal main"
+    state: present
+    filename: "ceph-{{ ceph_release }}"
+
+- name: Add ceph packages
+  apt:
+    update_cache: yes
+    name: ceph-common
+    state: latest
+
+- name: Configure ceph keys
+  ansible.builtin.copy:
+    dest: "/etc/ceph/ceph.{{ item.name }}.keyring"
+    content: "[{{ item.name }}]\nkey = {{item.key}}\n"
+  loop: "{{ ceph_mounts }}"
+
+- name: Install ceph config
+  ansible.builtin.template:
+    src: ceph.conf.j2
+    dest: /etc/ceph/ceph.conf
+    owner: root
+    mode: 0644
+
+- name: Ensure that mount points exist
+  ansible.builtin.file:
+    path: "{{ item.mountpoint }}"
+    state: directory
+    owner: root
+    mode: 0755
+  loop: "{{ ceph_mounts }}"
+
+- name: Mount cephfs shares
+  mount:
+    path: "{{ item.mountpoint }}"
+    src: "{{ ceph_mon_ips| join(',')}}:/volumes/_nogroup/{{ item.mountid }}"
+    fstype: ceph
+    opts: "name={{ item.name|replace('client.','')}},relatime,nosuid,_netdev,acl"
+    state: mounted
+  with_items: "{{ ceph_mounts }}"

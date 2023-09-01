@@ -1,0 +1,25 @@
+[sssd]
+config_file_version = 2
+services = ssh
+domains = ldap
+
+[nss]
+filter_users = root,lightdm,nslcd,dnsmasq,dbus,avahi,avahi-autoipd,backup,beagleindex,bin,daemon,games,gdm,gnats,haldaemon,hplip,irc,ivman,klog,libuuid,list,lp,mail,man,messagebus,mysql,news,ntp,openldap,polkituser,proxy,pulse,puppet,saned,sshd,sync,sys,syslog,uucp,vde2-net,www-data
+filter_groups = root
+
+[pam]
+
+[domain/ldap]
+autofs_provider = ldap
+ldap_schema = rfc2307
+ldap_search_base = dc=ilifu,dc=ac,dc=za
+id_provider = ldap
+auth_provider = ldap
+chpass_provider = ldap
+ldap_uri = ldap://{{ ldapserver.name }}:389
+ldap_id_use_start_tls = True
+cache_credentials = True
+enumerate = True
+access_provider = simple
+simple_allow_groups = idia-mightee,idia-admins
+simple_allow_users = ubuntu

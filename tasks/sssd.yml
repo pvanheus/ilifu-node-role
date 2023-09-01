@@ -1,0 +1,24 @@
+---
+- name: Install SSSD
+  ansible.builtin.apt:
+    name:
+      - sssd
+      - sssd-ldap
+
+- name: ensure that LDAP server is accessible
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    regexp: ".*\t{{ ldapserver.name }}"
+    line: "{{ ldapserver.ip }}\t{{ ldapserver.name }}"
+    state: present
+    backup: yes
+
+- name: Install SSSD config
+  ansible.builtin.template:
+    src: sssd.conf.j2
+    dest: /etc/sssd/conf.d/sssd.conf
+    owner: root
+    mode: 0600
+  notify:
+    - Restart SSSD
+  
