@@ -1,3 +1,5 @@
 ---
 slurm_version: 22.05.9
 ceph_release: pacific
+slurm_gid: 998
+slurm_uid: 997

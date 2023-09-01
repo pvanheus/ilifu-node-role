@@ -37,10 +37,95 @@
     dest: "/home/{{ ansible_user }}"
     remote_src: true
     creates: "/home/{{ ansible_user }}/slurm-{{ slurm_version }}"
-  become_user: "{{ ansible_user }}"
+  become: false
 
-# - name: Compile slurm
-#   ansible.builtin.command:
-#     cmd: "./configure --prefix=/opt/slurms/{{ slurm_version }} --enable-pam --with-json --with-hdf5 --with-hwloc --with-nvml={{ cuda.path }}"
-#     chdir: "/home/{{ ansible_user }}/slurm-{{ slurm_version }}"
+- name: Configure slurm
+  ansible.builtin.command:
+    cmd: "./configure --prefix=/opt/slurm/{{ slurm_version }} --sysconfdir=/opt/slurm/etc --enable-pam --with-json --with-hdf5 --with-hwloc --with-nvml={{ cuda_path }}"
+    chdir: "/home/{{ ansible_user }}/slurm-{{ slurm_version }}"
+    creates: "/home/{{ ansible_user }}/slurm-{{ slurm_version }}/config.h"
+  become: false
 
+- name: Compile slurm
+  ansible.builtin.command:
+    cmd: "make"
+    chdir: "/home/{{ ansible_user }}/slurm-{{ slurm_version }}"
+    creates: "/home/{{ ansible_user }}/slurm-{{ slurm_version }}/etc/slurmd.service"
+  become: false
+
+- name: Install slurm
+  ansible.builtin.command:
+    cmd: "make install"
+    chdir: "/home/{{ ansible_user }}/slurm-{{ slurm_version }}"
+    creates: "/opt/slurm/{{ slurm_version }}"
+
+- name: Create links for slurm components
+  ansible.builtin.file:
+    src: "/opt/slurm/{{ slurm_version }}/{{ item }}"
+    dest: "/opt/slurm/{{ item }}"
+    state: link
+  loop:
+    - bin
+    - include
+    - lib
+    - sbin    
+    - share
+
+- name: Add slurm group
+  ansible.builtin.group:
+    name: slurm
+    gid: "{{ slurm_gid }}"
+
+- name: Add slurm user
+  ansible.builtin.user:
+    name: slurm
+    uid: "{{ slurm_uid }}"
+    group: slurm
+    home: "/home/slurm"
+    shell: "/bin/bash"
+    system: true
+    comment: "System user for slurm"
+    password: "*"
+
+- name: add IP for slurm controller
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    regexp: ".*\t{{ slurm_controller.name }}"
+    line: "{{ slurm_controller.ip }}\t{{ slurm_controller.name }}"
+    state: present
+    backup: yes
+
+- name: add IP for slurm database server
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    regexp: ".*\t{{ slurm_database.name }}"
+    line: "{{ slurm_database.ip }}\t{{ slurm_database.name }}"
+    state: present
+    backup: yes
+
+- name: Create slurm config directory
+  ansible.builtin.file:
+    path: /opt/slurm/etc
+    owner: slurm
+    group: slurm
+    state: directory
+
+- name: Install slurm config
+  ansible.builtin.template:
+    src: slurm.conf.j2
+    dest: /opt/slurm/etc/slurm.conf
+    owner: slurm
+    group: slurm
+    mode: 0644
+
+- name: Install munge key
+  ansible.builtin.copy:
+    dest: /etc/munge/munge.key
+    content: "{{ munge_key | b64decode }}"
+    owner: munge
+    group: munge
+    mode: 0600
+  notify: Restart munge
+
+# TODO:
+# Install slurm DRMAA module
