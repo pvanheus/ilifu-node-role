@@ -50,7 +50,7 @@
 - name: Mount cephfs shares
   mount:
     path: "{{ item.mountpoint }}"
-    src: "{{ ceph_mon_ips| join(',')}}:/volumes/_nogroup/{{ item.mountid }}"
+    src: "{{ ceph_mon_ips| join(',')}}:{{ item.src }}"
     fstype: ceph
     opts: "name={{ item.name|replace('client.','')}},relatime,nosuid,_netdev,acl"
     state: mounted
