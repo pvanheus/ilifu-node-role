@@ -39,6 +39,12 @@
     owner: root
     mode: 0644
 
+- name: List existing ceph mounts
+  ansible.builtin.command:
+    cmd: findmnt -t ceph -l -o TARGET -n
+  register: ceph_mounts_list
+  changed_when: False  # don't mark this as changed because it just gathers info
+
 - name: Ensure that mount points exist
   ansible.builtin.file:
     path: "{{ item.mountpoint }}"
@@ -46,6 +52,7 @@
     owner: root
     mode: 0755
   loop: "{{ ceph_mounts }}"
+  when: item.mountpoint not in ceph_mounts_list.stdout_lines
 
 - name: Mount cephfs shares
   mount:
