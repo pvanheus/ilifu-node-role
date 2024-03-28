@@ -1,5 +1,6 @@
 ---
 slurm_version: 22.05.9
+slurm_drmaa_version: 1.1.4
 ceph_release: pacific
 slurm_gid: 998
 slurm_uid: 997

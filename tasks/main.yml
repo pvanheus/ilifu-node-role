@@ -11,3 +11,8 @@
     file: slurm.yml
   tags:
     - slurm
+
+- ansible.builtin.import_tasks:
+    file: slurm_drmaa.yml
+  tags:
+    - slurm_drmaa

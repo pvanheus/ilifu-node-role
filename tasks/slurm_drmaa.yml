@@ -1,0 +1,28 @@
+---
+- block:
+  - name: Download and unpack slurm-drmaa tarball
+    ansible.builtin.unarchive:
+      src: "https://github.com/natefoo/slurm-drmaa/releases/download/{{ slurm_drmaa_version }}/slurm-drmaa-{{ slurm_drmaa_version }}.tar.gz"
+      dest: "/home/{{ ansible_user }}"
+      remote_src: true
+      creates: "/home/{{ ansible_user }}/slurm-drmaa-{{ slurm_drmaa_version }}"
+
+  - name: Configure slurm-drmaa
+    ansible.builtin.command:
+      cmd: "./configure --with-slurm-inc=/opt/slurm/{{ slurm_version }}/include --with-slurm-lib=/opt/slurm/{{ slurm_version }}/lib --prefix=/opt/slurm/{{ slurm_version }}"
+      chdir: "/home/{{ ansible_user }}/slurm-drmaa-{{ slurm_drmaa_version }}"
+      creates: "/home/{{ ansible_user }}/slurm-drmaa-{{ slurm_drmaa_version }}/config.h"
+
+  - name: Compile slurm-drmaa
+    ansible.builtin.command:
+      cmd: "make"
+      chdir: "/home/{{ ansible_user }}/slurm-drmaa-{{ slurm_drmaa_version }}"
+      creates: "/home/{{ ansible_user }}/slurm-drmaa-{{ slurm_drmaa_version }}/slurm_drmaa/.libs/libdrmaa.so"
+
+  become: false
+
+- name: Install slurm-drmaa
+  ansible.builtin.command:
+    cmd: "make install"
+    chdir: "/home/{{ ansible_user }}/slurm-drmaa-{{ slurm_drmaa_version }}"
+    creates: "/opt/slurm/{{ slurm_version }}/lib/libdrmaa.so"
