@@ -1,0 +1,16 @@
+---
+galaxy_info:
+  namespace: pvanheus
+  role_name: ilifu-node-role
+  author: Peter van Heusden
+  description: Set up a node on the Ilifu cloud with access to the Ilifu cluster
+  license: MIT
+  min_ansible_version: 2.10
+  github_branch: main
+  platforms:
+    - name: Ubuntu
+      versions:
+        - all
+  dependencies: []
+  galaxy_tags:
+    - ilifu
