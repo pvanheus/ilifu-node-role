@@ -22,3 +22,14 @@
   notify:
     - Restart SSSD
   
+- name: Configured AuthorizedKeys
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    line: "{{item}}"
+    state: present
+    backup: yes
+  loop:
+    - "AuthorizedKeysCommand /usr/bin/sss_ssh_authorizedkeys"
+    - "AuthorizedKeysCommandUser root"
+  notify:
+    - Restart sshd

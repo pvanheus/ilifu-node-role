@@ -4,6 +4,11 @@
     name: sssd
     state: restarted
 
+- name: Restart sshd
+  ansible.builtin.service:
+    name: ssh
+    state: restarted
+
 - name: Restart munge
   ansible.builtin.service:
     name: munge
